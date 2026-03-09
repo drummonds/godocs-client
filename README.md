@@ -24,3 +24,12 @@ err = client.UpdateMetadata(result.ULID, godocsclient.MetadataUpdate{
     Author: &author,
 })
 ```
+
+## Links
+
+| | |
+|---|---|
+| Documentation | https://h3-godocs-client.statichost.page/ |
+| Source (Codeberg) | https://codeberg.org/hum3/godocs-client |
+| Mirror (GitHub) | https://github.com/drummonds/godocs-client |
+| Docs repo | https://codeberg.org/hum3/godocs-client-docs |
