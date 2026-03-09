@@ -1,0 +1,52 @@
+version: "3"
+
+vars:
+  MODULE: github.com/drummonds/godocs-client
+
+tasks:
+  fmt:
+    desc: Format Go source
+    cmds:
+      - go fmt ./...
+
+  vet:
+    desc: Vet Go source
+    cmds:
+      - go vet ./...
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v -count=1 ./...
+
+  check:
+    desc: Format, vet, and test
+    cmds:
+      - task: fmt
+      - task: vet
+      - task: test
+
+  deps:tidy:
+    desc: Tidy module dependencies
+    cmds:
+      - go mod tidy
+
+  clean:
+    desc: Clean build cache
+    cmds:
+      - go clean -cache -testcache
+
+  release:
+    desc: Tag and push a release (library)
+    vars:
+      VERSION: '{{.VERSION}}'
+      COMMENT: '{{.COMMENT | default "release"}}'
+    preconditions:
+      - sh: '[[ "{{.VERSION}}" == v* ]]'
+        msg: "VERSION must start with 'v' (e.g. VERSION=v0.1.0)"
+      - sh: '[[ -n "{{.VERSION}}" ]]'
+        msg: "VERSION is required (e.g. task release VERSION=v0.1.0)"
+    cmds:
+      - task: check
+      - git tag -a {{.VERSION}} -m "{{.COMMENT}}"
+      - git push origin {{.VERSION}}
