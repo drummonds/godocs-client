@@ -30,5 +30,5 @@ err = client.UpdateMetadata(result.ULID, godocsclient.MetadataUpdate{
 | | |
 |---|---|
 | Documentation | https://h3-godocs-client.statichost.page/ |
-| Source (Codeberg) | https://codeberg.org/hum3/godocs-client |
+| Source (Forgejo) | https://git.bytestone.uk/hum3/godocs-client |
 | Mirror (GitHub) | https://github.com/drummonds/godocs-client |
