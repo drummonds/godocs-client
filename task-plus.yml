@@ -1,3 +1,4 @@
 remotes:
-  - origin
+  - name: origin
+    forge: forgejo
   - github

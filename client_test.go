@@ -25,12 +25,12 @@ func newDemoServer() *httptest.Server {
 			http.Error(w, "missing file", http.StatusBadRequest)
 			return
 		}
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 
 		destPath := r.FormValue("path")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(UploadResult{
+		_ = json.NewEncoder(w).Encode(UploadResult{
 			Path: destPath,
 			ULID: "01JTEST000000000000000000",
 			Name: header.Filename,
@@ -40,7 +40,7 @@ func newDemoServer() *httptest.Server {
 	})
 
 	mux.HandleFunc("GET /api/tags", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode([]Tag{
+		_ = json.NewEncoder(w).Encode([]Tag{
 			{ID: 1, Name: "invoice", Color: "#3498db", Description: ""},
 			{ID: 2, Name: "receipt", Color: "#e74c3c", Description: ""},
 		})
@@ -48,9 +48,9 @@ func newDemoServer() *httptest.Server {
 
 	mux.HandleFunc("POST /api/tags", func(w http.ResponseWriter, r *http.Request) {
 		var req map[string]string
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(Tag{ID: 99, Name: req["name"], Color: req["color"]})
+		_ = json.NewEncoder(w).Encode(Tag{ID: 99, Name: req["name"], Color: req["color"]})
 	})
 
 	mux.HandleFunc("POST /api/documents/{ulid}/tags", func(w http.ResponseWriter, r *http.Request) {
@@ -112,7 +112,7 @@ func TestUploadDuplicate(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusConflict)
-		json.NewEncoder(w).Encode(UploadResult{
+		_ = json.NewEncoder(w).Encode(UploadResult{
 			ULID: "01JEXISTING0000000000000",
 			Name: "dup.pdf",
 			Hash: "existinghash",
@@ -332,10 +332,12 @@ func TestDemoServerRequestValidation(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, _ := io.ReadAll(resp.Body)
 	var tags []Tag
-	json.Unmarshal(body, &tags)
+	if err := json.Unmarshal(body, &tags); err != nil {
+		t.Fatal(err)
+	}
 	if len(tags) != 2 {
 		t.Errorf("fixture tags count = %d, want 2", len(tags))
 	}

@@ -52,7 +52,7 @@ func (c *Client) Upload(filePath, destPath string) (*UploadResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("opening file: %w", err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	var buf bytes.Buffer
 	w := multipart.NewWriter(&buf)
@@ -70,7 +70,9 @@ func (c *Client) Upload(filePath, destPath string) (*UploadResult, error) {
 			return nil, fmt.Errorf("writing path field: %w", err)
 		}
 	}
-	w.Close()
+	if err := w.Close(); err != nil {
+		return nil, fmt.Errorf("closing multipart writer: %w", err)
+	}
 
 	return c.doUpload(&buf, w.FormDataContentType())
 }
@@ -93,7 +95,9 @@ func (c *Client) UploadBytes(content []byte, fileName, destPath string) (*Upload
 			return nil, fmt.Errorf("writing path field: %w", err)
 		}
 	}
-	w.Close()
+	if err := w.Close(); err != nil {
+		return nil, fmt.Errorf("closing multipart writer: %w", err)
+	}
 
 	return c.doUpload(&buf, w.FormDataContentType())
 }
@@ -109,7 +113,7 @@ func (c *Client) doUpload(body io.Reader, contentType string) (*UploadResult, er
 	if err != nil {
 		return nil, fmt.Errorf("upload request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	respBody, _ := io.ReadAll(resp.Body)
 
@@ -138,7 +142,7 @@ func (c *Client) GetTags() ([]Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var tags []Tag
 	if err := json.NewDecoder(resp.Body).Decode(&tags); err != nil {
@@ -154,7 +158,7 @@ func (c *Client) CreateTag(name string) (*Tag, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusCreated {
 		b, _ := io.ReadAll(resp.Body)
@@ -208,7 +212,7 @@ func (c *Client) AddTag(ulid string, tagID int) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
@@ -239,7 +243,7 @@ func (c *Client) UpdateMetadata(ulid string, meta MetadataUpdate) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		b, _ := io.ReadAll(resp.Body)
